@@ -1,0 +1,4 @@
+key: test1
+region: eu-central-1
+service_name: apache2
+www_port: 80
