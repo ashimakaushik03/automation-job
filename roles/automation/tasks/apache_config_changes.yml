@@ -11,11 +11,24 @@
      notify:
         restart apache2
 
-   - name: apache2 listen on port 8081
+   - name: apache2 listening on a different port which is 8081
      lineinfile: dest=/etc/apache2/ports.conf regexp="^Listen 80" line="Listen 8081" state=present
      notify:
         - restart apache2
 
+   - name: "Replace the LogLevel from warn to debug"
+      #  tags: example1
+     lineinfile:
+      path: /etc/apache2/apache2.conf
+     # The String to Search
+      regexp: "LogLevel warn" 
+          # The String to Replace
+      line: "LogLevel debug"
+      state: present
+      backup: yes
+        
+     register: example1out
+     
   handlers:
    - name: restart apache2
      service: name=apache2 state=restarted
