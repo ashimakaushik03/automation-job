@@ -1,0 +1,41 @@
+---
+- hosts: webservers
+  remote_user: ubuntu
+  become: yes
+  gather_facts: no
+  vars:
+    www_port: 80
+  tasks:
+   - name: Check if Apache is running
+     shell: pgrep apache2
+     ignore_errors: yes
+     changed_when: false
+     register: service_apache_status
+
+   - name: Report status of Apache
+     fail:
+       msg: |
+        Service apache2 is not running.
+        Return code from `pgrep`:
+        {{ service_apache_status.rc }}
+     when: service_apache_status.rc != 0
+
+   - name: Check the port where the Apache is running    
+     shell: "lsof -i :{{ www_port }}|grep LISTEN|cut -d ' ' -f 1"
+     register: result
+   - debug:
+        msg: "{{ result.stdout_lines|first }}"
+
+   - name: Get the service running on port 80
+     shell: netstat -tunlp | grep ":80 " | sed -e 's/.*\///'
+     register: results
+
+   - name: See what the above netstat command returned
+     debug: var=results
+
+   - name: get the rpm or apt package facts
+     package_facts:
+       manager: "auto"
+
+   - name: show apache2 version
+     debug: var=ansible_facts.packages.apache2[0].version
